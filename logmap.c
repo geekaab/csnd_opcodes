@@ -7,34 +7,42 @@
 #define OPCODE_INTYPE "ki"
 #define OPCODE_OUTTYPE "k"
 
-typedef struct _logmap {
+typedef 
+struct logmap {
   OPDS h;
-  /* outputs: */
   MYFLT *out;
-  /* inputs: */
-  MYFLT *trig;
-  MYFLT *x0;
-  double r, x, xm1;
+  MYFLT *trig, *x0;
+  MYFLT r, x, xm1;
 } logmap;
 
-static int op_init(CSOUND *csnd, logmap *l)
+static 
+int op_init(CSOUND *csnd, logmap *l)
 {
-  l->x = *(l->x0);
+  l->x = (*(l->x0) < (MYFLT)1.0 && *(l->x0) > (MYFLT)0.0) ? *(l->x0) : (MYFLT)0.01;
   l->r = (MYFLT)4.0;
   return OK;
 }
 
-static int op_k(CSOUND *csnd, logmap *l)
+static inline 
+MYFLT lgmp(logmap *l)
 {
-  if (*(l->trig)) {
     l->xm1 = l->x;
     l->x = l->r * l->xm1 * ((MYFLT)1.0 - l->xm1);
+    return l->x;
+}
+
+static 
+int op_k(CSOUND *csnd, logmap *l)
+{
+  if (*(l->trig)) {
+    l->x = lgmp(l);
     *(l->out) = (MYFLT)l->x;
   }
   return OK;
 }
 
-static OENTRY localops[] = {
+static 
+OENTRY localops[] = {
   { 
     OPCODE_NAME, 
     sizeof(logmap), 
